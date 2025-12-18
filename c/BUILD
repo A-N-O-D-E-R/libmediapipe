@@ -1,17 +1,11 @@
-package(default_visibility = [
-    "//visibility:public",
-])
+package(default_visibility = ["//visibility:public"])
 
-cc_binary(
-    name = "mediapipe",
-    srcs = ["mediapipe.cpp", "mediapipe.h"],
+cc_library(
+    name = "mediapipe_c_api",
+    srcs = ["mediapipe.cpp"],
+    hdrs = ["mediapipe.h"],
     defines = ["MEDIAPIPE_EXPORT"],
-    data = [
-        "//mediapipe/modules/face_detection:face_detection_short_range.tflite",
-        "//mediapipe/modules/face_landmark:face_landmark_with_attention.tflite",
-        "//mediapipe/modules/hand_landmark:hand_landmark_full.tflite",
-        "//mediapipe/modules/palm_detection:palm_detection_full.tflite",
-    ],
+    visibility = ["//visibility:public"],
     deps = [
         "//mediapipe/framework:calculator_framework",
         "//mediapipe/framework/formats:image_frame",
@@ -24,9 +18,19 @@ cc_binary(
         "//mediapipe/framework/port:status",
         "@com_google_absl//absl/flags:flag",
         "@com_google_absl//absl/flags:parse",
-        
         "//mediapipe/graphs/face_mesh:desktop_live_calculators",
         "//mediapipe/modules/hand_landmark:hand_landmark_tracking_cpu",
+    ],
+)
+
+cc_binary(
+    name = "mediapipe",
+    deps = [":mediapipe_c_api"],
+    data = [
+        "//mediapipe/modules/face_detection:face_detection_short_range.tflite",
+        "//mediapipe/modules/face_landmark:face_landmark_with_attention.tflite",
+        "//mediapipe/modules/hand_landmark:hand_landmark_full.tflite",
+        "//mediapipe/modules/palm_detection:palm_detection_full.tflite",
     ],
     linkshared = 1,
 )
