@@ -6,6 +6,7 @@ cc_library(
     hdrs = ["mediapipe.h"],
     defines = ["MEDIAPIPE_EXPORT"],
     visibility = ["//visibility:public"],
+    alwayslink = 1,
     deps = [
         "//mediapipe/framework:calculator_framework",
         "//mediapipe/framework/formats:image_frame",
@@ -33,4 +34,43 @@ cc_binary(
         "//mediapipe/modules/palm_detection:palm_detection_full.tflite",
     ],
     linkshared = 1,
+    linkopts = ["-Wl,--export-dynamic"],
+)
+
+genrule(
+    name = "copy_jni_h",
+    srcs = ["@bazel_tools//tools/jdk:jni_header"],
+    outs = ["jni.h"],
+    cmd = "cp -f $< $@",
+)
+
+genrule(
+    name = "copy_jni_md_h",
+    srcs = select({
+        "//mediapipe:macos": ["@bazel_tools//tools/jdk:jni_md_header-darwin"],
+        "//conditions:default": ["@bazel_tools//tools/jdk:jni_md_header-linux"],
+    }),
+    outs = ["jni_md.h"],
+    cmd = "cp -f $< $@",
+)
+
+cc_library(
+    name = "jni_headers",
+    hdrs = [
+        ":jni.h",
+        ":jni_md.h",
+    ],
+    includes = ["."],
+    visibility = ["//visibility:public"],
+)
+
+cc_binary(
+    name = "libmediapipe_jni.so",
+    srcs = ["mediapipe_jni.cpp"],
+    deps = [
+        ":mediapipe_c_api",
+        ":jni_headers",
+    ],
+    linkshared = 1,
+    linkopts = ["-Wl,--export-dynamic"],
 )
